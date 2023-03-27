@@ -1,8 +1,8 @@
 @echo off
 cd /D %~dp0
-set PATH=%WIX%\bin;%PATH%
+set PATH="%ANT_HOME%\bin";%PATH%
 
-if not defined JAVA_HOME (set JAVA_HOME=C:\Program Files\Java\jdk1.8.0_144)
+if not defined JAVA_HOME (set JAVA_HOME=C:\Program Files\Java\jdk-10.0.2)
 
 echo Downloading dependencies...
 call ant resolve
@@ -14,7 +14,7 @@ call ant fatjar
 
 echo:
 
-echo Building MSI installer...
-call ant msi
+::echo Building MSI installer...
+::call ant msi
 
 if not defined WORKSPACE pause
