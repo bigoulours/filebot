@@ -8,7 +8,6 @@ lib/ivy/
 *.properties
 *.txt
 
-*.sh
 *.cmd
 *.groovy
 
