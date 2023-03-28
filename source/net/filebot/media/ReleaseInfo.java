@@ -422,7 +422,7 @@ public class ReleaseInfo {
 		return PIPE.split(tags);
 	}
 
-	private final Resource<Map<Pattern, String>> seriesMappings = resource("url.series-mappings", Cache.ONE_WEEK, Function.identity(), String[]::new).transform(lines -> {
+	private final Resource<Map<Pattern, String>> seriesMappings = resource("url.series-mappings", Cache.ONE_WEEK, Function.identity(), String[]::new, true).transform(lines -> {
 		Map<Pattern, String> map = new LinkedHashMap<Pattern, String>(lines.length);
 		stream(lines).map(s -> TAB.split(s, 2)).filter(v -> v.length == 2).forEach(v -> {
 			Pattern pattern = compile("(?<!\\p{Alnum})(" + v[0] + ")(?!\\p{Alnum})", CASE_INSENSITIVE);
@@ -469,19 +469,23 @@ public class ReleaseInfo {
 	}
 
 	protected Resource<String[]> lines(String name, Duration expirationTime) {
-		return resource(name, expirationTime, Function.identity(), String[]::new).memoize();
+		return resource(name, expirationTime, Function.identity(), String[]::new, true).memoize();
 	}
 
 	protected <A> Resource<A[]> tsv(String name, Duration expirationTime, Function<String[], A> parse, IntFunction<A[]> generator) {
-		return resource(name, expirationTime, s -> parse.apply(TAB.split(s)), generator).memoize();
+		return resource(name, expirationTime, s -> parse.apply(TAB.split(s)), generator, false).memoize();
 	}
 
-	protected <A> Resource<A[]> resource(String name, Duration expirationTime, Function<String, A> parse, IntFunction<A[]> generator) {
+	protected <A> Resource<A[]> resource(String name, Duration expirationTime, Function<String, A> parse, IntFunction<A[]> generator, Boolean txt) {
 		return () -> {
 			Cache cache = Cache.getCache("data", CacheType.Persistent);
-			byte[] bytes = cache.bytes(name, n -> new URL(getProperty(n)), XZInputStream::new).expire(refreshDuration.optional().orElse(expirationTime)).get();
-
-			// all data files are UTF-8 encoded XZ compressed text files
+			byte[] bytes;
+			if (txt) {	// all data files are UTF-8 encoded text files
+				bytes = cache.bytes(name, n -> new URL(getProperty(n))).expire(refreshDuration.optional().orElse(expirationTime)).get();
+			}
+			else {		// all data files are UTF-8 encoded XZ compressed text files
+				bytes = cache.bytes(name, n -> new URL(getProperty(n)), XZInputStream::new).expire(refreshDuration.optional().orElse(expirationTime)).get();
+			}	
 			Stream<String> lines = NEWLINE.splitAsStream(UTF_8.decode(ByteBuffer.wrap(bytes)));
 
 			return lines.filter(s -> s.length() > 0).map(parse).filter(Objects::nonNull).toArray(generator);
