@@ -4,6 +4,8 @@ build-data/
 dist/
 cache/
 lib/ivy/
+.vscode/
+.hypothesis/
 
 *.txt
 

@@ -26,7 +26,6 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
@@ -87,7 +86,7 @@ public final class FileUtilities {
 		// Linux and Mac OS X
 		try {
 			Files.move(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING).toFile();
-		} catch (NoSuchFileException e) {
+		} catch (Exception e) {
 			debug.warning(e::toString);
 		}
 		return destination;
@@ -106,7 +105,7 @@ public final class FileUtilities {
 		// copy file
 		try {
 			Files.copy(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING).toFile();
-		} catch (NoSuchFileException e) {
+		} catch (Exception e) {
 			debug.warning(e::toString);
 		}
 		return destination;
